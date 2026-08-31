@@ -37,6 +37,8 @@ df_ex = pd.DataFrame([{"Year": str(x["date"]), "USD_LKR_Exchange_Rate": x["value
 new_df = pd.merge(df_cpi_rate, df_cpi_index, on="Year")
 new_df = pd.merge(new_df, df_ex, on="Year").sort_values("Year").reset_index(drop=True)
 new_df = new_df.fillna("")
+# Calculate Purchasing Power Index (Base Year 2010 = 100)
+new_df["Purchasing_Power_Index"] = (100 / new_df["CPI_Cost_of_Living_Index"]) * 100
 
 # Open Target Google Sheet
 spreadsheet_name = "SriLanka_Live_Economic_Data"
