@@ -60,3 +60,46 @@ worksheet.clear()
 worksheet.update([combined_df.columns.values.tolist()] + combined_df.values.tolist())
 
 print("✅ Success! Live data pipeline executed successfully via GitHub Actions.")
+
+
+XGBOOST MODEL & PREDICTION AUTOMATION
+# =====================================
+try:
+# Clean data and prepare for machine learning model
+    model_df = combined_df.replace(r'^\s*$', np.nan, regex=True)
+    model_df = model_df.dropna()
+    model_df.set_index('Year', inplace=True)
+    model_df = model_df.astype(float)
+    model_df.index = pd.to_datetime(model_df.index.astype(int), format='%Y')
+
+# Define features (inputs) and target (output)
+    X = model_df[['CPI_Cost_of_Living_Index', 'USD_LKR_Exchange_Rate', 'Purchasing_Power_Index']]
+    y = model_df['Inflation_Rate_%']
+
+# Split data: Training set (up to 2021) and Testing set (from 2022 onwards)
+    X_train = X[X.index.year <= 2021]
+    y_train = y[y.index.year <= 2021]
+    X_test = X[X.index.year > 2021]
+
+# Train the XGBoost model
+    xgb_model = xgb.XGBRegressor(objective='reg:squarederror', n_estimators=100, learning_rate=0.1, random_state=42)
+    xgb_model.fit(X_train, y_train)
+
+# Predict future inflation for the next year
+    future_input = X_test.iloc[[-1]]
+    future_prediction = xgb_model.predict(future_input)[0]
+    next_year = X_test.index.year[-1] + 1
+
+# Check if 'Predictions' tab exists in Google Sheet, if not create it
+    try:
+        pred_worksheet = sh.worksheet("Predictions")
+    except gspread.exceptions.WorksheetNotFound:
+        pred_worksheet = sh.add_worksheet(title="Predictions", rows="100", cols="10")
+        pred_worksheet.append_row(["Year", "Predicted_Inflation"])
+
+# Save the new prediction result into the 'Predictions' tab
+    pred_worksheet.append_row([str(next_year), float(future_prediction)])
+    print(f"Prediction for {next_year} ({future_prediction:.2f}%) successfully saved to 'Predictions' tab!")
+
+except Exception as e:
+    print(f"Warning during Machine Learning prediction: {e}")
