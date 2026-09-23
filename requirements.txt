@@ -1,0 +1,7 @@
+pandas
+requests
+gspread
+google-auth
+xgboost
+scikit-learn
+numpy
