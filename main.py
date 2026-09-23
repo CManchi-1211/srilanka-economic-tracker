@@ -62,7 +62,7 @@ worksheet.update([combined_df.columns.values.tolist()] + combined_df.values.toli
 print("✅ Success! Live data pipeline executed successfully via GitHub Actions.")
 
 
-XGBOOST MODEL & PREDICTION AUTOMATION
+# XGBOOST MODEL & PREDICTION AUTOMATION
 # =====================================
 try:
 # Clean data and prepare for machine learning model
